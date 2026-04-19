@@ -84,7 +84,7 @@ Il sistema implementa SO rispetto a **due diversi punti di riferimento**, a seco
 
 | Metodo | $W_{\text{ref}}$ | Significato |
 |---|---|---|
-| `bernstein_op_upper/lower` | $W_{\text{bernstein\_op}}$ | SO rispetto all'operatore di Bernstein classico |
+| `bernstein_op_upper/lower` | $W_{\text{bernsteinOp}}$ | SO rispetto all'operatore di Bernstein classico |
 | `scipy_upper/lower` | $W_{\text{scipy}}$ | SO rispetto all'ottimo non vincolato (MSE minimo) |
 | `pytorch_upper` | $W_{\text{scipy}}$ | idem, con vincolo soft (penalità) |
 
@@ -116,7 +116,7 @@ I vincoli sono gestiti **esattamente** (non come penalità):
 
 **Versione SO** (`scipy_upper/lower`): $W_{\text{ref}} = W_{\text{scipy}}$ (l'ottimo non vincolato). I vincoli $\text{cumsum}(\Delta) \le 0$ / $\ge 0$ rimpiccioliscono il feasible set ma mantengono la convessità del problema. SLSQP garantisce l'ottimo locale nel feasible set SO che per questo problema è globale.
 
-**Versione SO da BernOp** (`bernstein_op_upper/lower`): $W_{\text{ref}} = W_{\text{bernstein\_op}}$. Il vincolo SO è ora rispetto al punto di partenza dell'operatore classico, non rispetto all'ottimo. Produce un BP che è vincolato a stare stocasticamente sopra/sotto l'operatore di Bernstein.
+**Versione SO da BernOp** (`bernstein_op_upper/lower`): $W_{\text{ref}} = W_{\text{bernsteinOp}}$. Il vincolo SO è ora rispetto al punto di partenza dell'operatore classico, non rispetto all'ottimo. Produce un BP che è vincolato a stare stocasticamente sopra/sotto l'operatore di Bernstein.
 
 ---
 
