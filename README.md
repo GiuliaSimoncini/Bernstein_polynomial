@@ -25,7 +25,7 @@ Proprietà chiave:
 
 ## 2. Il Problema di Ottimizzazione con Formulazione Delta
 
-### L'operatore di Bernstein come warm-start
+### L'operatore di Bernstein classico
 
 L'**operatore di Bernstein classico** costruisce i pesi campionando direttamente la funzione target ai nodi $k/N$:
 
@@ -152,7 +152,7 @@ SLSQP (*Sequential Least Squares Programming*) è un algoritmo iterativo per pro
 Ad ogni iterazione esegue due passi.
 
 **Passo 1 - sottoproblema QP locale.**
-Approssima $f(x)$ con una forma quadratica usando il gradiente e una stima dell'Hessiana (aggiornamento BFGS), e linearizza i vincoli attorno al punto corrente $x_k$. Risolve questo *Quadratic Program* (QP) in modo esatto, ottenendo una direzione di discesa $d_k$.
+Approssima $f(x)$ con una forma quadratica usando il gradiente e una stima dell'Hessiana (aggiornamento BFGS) e linearizza i vincoli attorno al punto corrente $x_k$. Risolve questo *Quadratic Program* (QP) in modo esatto, ottenendo una direzione di discesa $d_k$.
 
 **Passo 2 - line search.**
 Cerca lungo la direzione $d_k$ il passo $\alpha$ che riduce una funzione di merito. Aggiorna $x_{k+1} = x_k + \alpha \cdot d_k$. Ripete finché il gradiente proiettato è abbastanza piccolo.
