@@ -100,7 +100,7 @@ def plot_simple_pdf(results: dict, save_path: str | None = None):
     N, name  = results['N'], results['name']
 
     fig, (ax_pdf, ax_mse) = plt.subplots(1, 2, figsize=(12, 5))
-    fig.suptitle(f'Approssimazione PDF — {name}  (N={N})',
+    fig.suptitle(f'Approssimazione PDF - {name}  (N={N})',
                  fontsize=13, fontweight='bold')
 
     ax_pdf.plot(x, f, 'k--', lw=2.5, zorder=6, label='f(x) target')
@@ -144,7 +144,7 @@ def plot_simple_cdf(results: dict, save_path: str | None = None):
     cdf_t        = _cdf_target(f, dx)
 
     fig, ax = plt.subplots(figsize=(8, 5))
-    fig.suptitle(f'CDF — {name}  (N={N})', fontsize=12, fontweight='bold')
+    fig.suptitle(f'CDF - {name}  (N={N})', fontsize=12, fontweight='bold')
 
     ax.plot(x, cdf_t, 'k--', lw=2.5, zorder=6, label='CDF target')
     for key, st in STYLE.items():
@@ -171,7 +171,7 @@ def plot_simple_weights(results: dict, save_path: str | None = None):
     keys  = list(STYLE.keys())
 
     fig, axes = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
-    fig.suptitle(f'Pesi W — {results["name"]}  (N={N})',
+    fig.suptitle(f'Pesi W - {results["name"]}  (N={N})',
                  fontsize=11, fontweight='bold')
 
     for ax, key in zip(axes, keys):
