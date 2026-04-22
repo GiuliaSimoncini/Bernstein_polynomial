@@ -85,7 +85,8 @@ def run_experiment(name: str, exp_id: int, target_f: np.ndarray):
             'time': calc_time
         }
         
-        print(f" Grado N={n:<4} | MSE={error:.6f} | Tempo={calc_time:>6.2f} ms")
+        # MSE stampato con 10 decimali
+        print(f" Grado N={n:<7} | MSE={error:.10f} | Tempo={calc_time:>6.2f} ms")
 
     # 2. GRAFICO PDF
     plt.figure(figsize=(10, 6))
@@ -93,8 +94,9 @@ def run_experiment(name: str, exp_id: int, target_f: np.ndarray):
     
     colors = plt.cm.viridis(np.linspace(0.2, 0.9, len(N_LIST)))
     for (n, res), color in zip(results.items(), colors):
+        # 10 decimali per l'MSE nella legenda
         plt.plot(x, res['pdf'], color=color, lw=2, alpha=0.8, 
-                 label=f'Bernstein N={n} (MSE: {res["mse"]:.4f})')
+                 label=f'Bernstein N={n} (MSE: {res["mse"]:.10f})')
         
     plt.title(f'Convergenza PDF - {name}', fontsize=14, fontweight='bold')
     plt.xlabel('x')
