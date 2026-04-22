@@ -58,7 +58,7 @@ def run_bernstein(name: str, N: int, x: np.ndarray, f: np.ndarray) -> dict:
 
     t0 = time.perf_counter()
     W_init = bernstein_operator_init(N, x, f)
-    t = (time.perf_counter() - t0) * 1e3
+    t_bern = (time.perf_counter() - t0) * 1e3
 
     print(f"\n{'='*60}")
     print(f"  {name}  (N={N})")
@@ -68,9 +68,9 @@ def run_bernstein(name: str, N: int, x: np.ndarray, f: np.ndarray) -> dict:
 
     # 1. Bernstein operator puro
     m = mse(W_init, M, f)
-    results['bernstein_op'] = dict(W=W_init.copy(), mse=m, time_ms=t,
+    results['bernstein_op'] = dict(W=W_init.copy(), mse=m, time_ms=t_bern,
                                    Delta=None)
-    print(f"  Bernstein operator      MSE={m:.7f}   t={t:8.2f} ms")
+    print(f"  Bernstein operator      MSE={m:.7f}   t={t_bern:8.2f} ms")
 
     # 2. SO upper — W_ref = W_bernstein_op
     #    Vincolo: cumsum(Delta)[h] <= 0  per h=0..N-1
@@ -80,7 +80,7 @@ def run_bernstein(name: str, N: int, x: np.ndarray, f: np.ndarray) -> dict:
                              W_init=W_init.copy(),
                              direction='upper',
                              W_ref=W_init.copy())
-    t = (time.perf_counter() - t0) * 1e3
+    t = (time.perf_counter() - t0) * 1e3 + t_bern
     so_up = check_order(W_up, W_init, 'upper')
     m     = mse(W_up, M, f)
     results['bernstein_op_upper'] = dict(W=W_up, mse=m, time_ms=t,
@@ -97,7 +97,7 @@ def run_bernstein(name: str, N: int, x: np.ndarray, f: np.ndarray) -> dict:
                              W_init=W_init.copy(),
                              direction='lower',
                              W_ref=W_init.copy())
-    t = (time.perf_counter() - t0) * 1e3
+    t = (time.perf_counter() - t0) * 1e3 + t_bern
     so_lo = check_order(W_lo, W_init, 'lower')
     m     = mse(W_lo, M, f)
     results['bernstein_op_lower'] = dict(W=W_lo, mse=m, time_ms=t,
