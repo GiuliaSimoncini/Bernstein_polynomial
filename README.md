@@ -16,10 +16,10 @@ Un **Bernstein Polynomial (BP)** con pesi $W$ è:
 $$BP(W, x) = \sum_{k=0}^N W_k \cdot B_{k,N}(x)$$
 
 Proprietà chiave:
-* **Positività**: se $W_k \ge 0$ allora $BP(W,x) \ge 0$
-* **Misura unitaria**: $\int_0^1 BP(W,x) \, dx = \frac{\sum_k W_k}{N+1}$, quindi il vincolo PDF si riduce a $\sum W = N+1$
-* **Localizzazione**: la moda di $B_{k,N}$ cade in $k/N$, ogni base presidia la propria zona
-* **Equivalenza con Taylor**: basi di Bernstein e Taylor di grado N generano lo stesso spazio, quindi ogni polinomio di grado $\le N$ ha una rappresentazione esatta in base di Bernstein
+- **Positività**: se $W_k \ge 0$ allora $BP(W,x) \ge 0$
+- **Misura unitaria**: $\int_0^1 BP(W,x) \, dx = \frac{\sum_k W_k}{N+1}$, quindi il vincolo PDF si riduce a $\sum W = N+1$
+- **Localizzazione**: la moda di $B_{k,N}$ cade in $k/N$, ogni base presidia la propria zona
+- **Equivalenza con Taylor**: basi di Bernstein e Taylor di grado N generano lo stesso spazio, quindi ogni polinomio di grado $\le N$ ha una rappresentazione esatta in base di Bernstein
 
 ---
 
@@ -96,8 +96,9 @@ Il sistema implementa SO rispetto a **due diversi punti di riferimento**, a seco
 
 Attiva solo le due basi di Bernstein che racchiudono la moda di $f$, distribuendo la massa (N+1) in proporzione inversa alla distanza dalla moda.
 
-**Cosa fa bene**: costo $\mathcal{O}(N)$, $< 0.1$ ms. È la versione elementare dell'idea di pre-emphasis locale: si enfatizzano solo le basi vicine al picco.
-**Cosa fa male**: con 2 basi attive su N+1 ignora la forma globale di $f$. MSE molto alto. Non supporta vincoli SO.
+**Vantaggi**: costo $\mathcal{O}(N)$, $< 0.1$ ms. È la versione elementare dell'idea di pre-emphasis locale: si enfatizzano solo le basi vicine al picco.
+
+**Svantaggi**: con 2 basi attive su N+1 ignora la forma globale di $f$. MSE molto alto. Non supporta vincoli SO.
 
 ---
 
@@ -145,9 +146,9 @@ dove $\text{segno} = +1$ per upper (viola se $\text{cumsum}(\Delta) > 0$) e $\te
 ## 5. Come Funziona SLSQP Internamente
 
 SLSQP (*Sequential Least Squares Programming*) è un algoritmo iterativo per problemi della forma: minimizzare $f(x)$ soggetto a:
-* $g_i(x) = 0$ (uguaglianze)
-* $h_j(x) \ge 0$ (disuguaglianze)
-* $lb \le x \le ub$ (bounds)
+- $g_i(x) = 0$ (uguaglianze)
+- $h_j(x) \ge 0$ (disuguaglianze)
+- $lb \le x \le ub$ (bounds)
 
 Ad ogni iterazione esegue due passi.
 
@@ -160,8 +161,8 @@ Cerca lungo la direzione $d_k$ il passo $\alpha$ che riduce una funzione di meri
 ### Perché è lento con N grande
 
 Il QP locale ha N+1 variabili e circa N vincoli di disuguaglianza SO. Ad ogni iterazione SLSQP deve:
-* Aggiornare l'Hessiana approssimata: $\mathcal{O}(N^2)$ memoria e tempo
-* Risolvere il QP vincolato: $\mathcal{O}(N^3)$ nel caso peggiore
+- Aggiornare l'Hessiana approssimata: $\mathcal{O}(N^2)$ memoria e tempo
+- Risolvere il QP vincolato: $\mathcal{O}(N^3)$ nel caso peggiore
 
 Con $N=30$ il costo è gestibile ($< 1 s$). Con $N=100$ il QP interno è circa 30x più costoso e servono più iterazioni perché lo spazio feasibile con 99 vincoli SO è molto più rigido.
 
@@ -213,18 +214,18 @@ In pratica `bernstein_op_upper` risponde alla domanda: *"Qual è il BP che minim
 ## 8. Cosa Viene Stampato
 
 Per ogni metodo SO il codice stampa:
-* Pesi $W$ ottimizzati ($\sum W = N+1$)
-* $\Delta$ calcolato come $W_{\text{new}} - W_{\text{ref}}$ ($\sum \Delta = 0$)
-* Verifica numerica per $\sum \Delta \approx 0$
-* Stato del vincolo SO esaminando i limiti min e max di $\text{cumsum}(\Delta)$
+- Pesi $W$ ottimizzati ($\sum W = N+1$)
+- $\Delta$ calcolato come $W_{\text{new}} - W_{\text{ref}}$ ($\sum \Delta = 0$)
+- Verifica numerica per $\sum \Delta \approx 0$
+- Stato del vincolo SO esaminando i limiti min e max di $\text{cumsum}(\Delta)$
 
 ---
 
 ## 9. Il Corridoio Stocastico
 
 Nel grafico `expN_so_summary.png` compaiono **due corridoi**:
-* **Verde** (scipy): tra CDF di `scipy_upper` e `scipy_lower` - il range di CDF ottenibili minimizzando l'MSE rispetto all'ottimo $W_{\text{scipy}}$
-* **Arancione** (BernOp): tra CDF di `bernstein_op_upper` e `bernstein_op_lower` - il range di CDF ottenibili con SO rispetto all'operatore di Bernstein
+- **Verde** (scipy): tra CDF di `scipy_upper` e `scipy_lower` - il range di CDF ottenibili minimizzando l'MSE rispetto all'ottimo $W_{\text{scipy}}$
+- **Arancione** (BernOp): tra CDF di `bernstein_op_upper` e `bernstein_op_lower` - il range di CDF ottenibili con SO rispetto all'operatore di Bernstein
 
 ---
 
@@ -268,18 +269,18 @@ Sono stati realizzati 4 tipi di file `main.py` per l'esecuzione di esperimenti d
 ## 12. Funzioni Target Analizzate
 
 Le prestazioni dei vari metodi sono testate su diversi tipi di funzioni target $f$, tra cui:
-* **Unimodale Beta**: utile per testare il comportamento su una singola moda.
-* **Polinomiale**: funzione liscia di test.
-* **Bimodale**: ottenuta come somma di due funzioni Beta, ideale per testare la risposta a picchi multipli.
+- **Unimodale Beta**: utile per testare il comportamento su una singola moda.
+- **Polinomiale**: funzione liscia di test.
+- **Bimodale**: ottenuta come somma di due funzioni Beta, ideale per testare la risposta a picchi multipli.
 
 ---
 
 ## 13. Grafici Generati
 
 Dall'esecuzione del codice vengono realizzati numerosi grafici di confronto, tra cui:
-* **Grafico delle PDF / CDF**: illustrano le densità e ripartizioni stimate rispetto a quella target.
-* **Grafico dei pesi W / Delta**: istogrammi che mostrano la distribuzione dei parametri ottimizzati.
-* **Grafico dei Tempi e dell'MSE**: diagramma a barre che illustra l'efficienza algoritmica e l'errore.
+- **Grafico delle PDF / CDF**: illustrano le densità e ripartizioni stimate rispetto a quella target.
+- **Grafico dei pesi W / Delta**: istogrammi che mostrano la distribuzione dei parametri ottimizzati.
+- **Grafico dei Tempi e dell'MSE**: diagramma a barre che illustra l'efficienza algoritmica e l'errore.
 
 ---
 ---
