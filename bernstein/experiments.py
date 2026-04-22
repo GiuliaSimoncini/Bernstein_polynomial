@@ -19,12 +19,12 @@ Logica dei vincoli SO
 
 Il vincolo SO è sempre definito in termini di Delta = W_new - W_ref:
 
-  upper:  cumsum(Delta)[h] <= 0  ∀h=0..N-1   → massa verso destra  → BP >=_st ref
+  upper:  cumsum(Delta)[h] <= 0  ∀h=0..N-1   → massa verso destra   → BP >=_st ref
   lower:  cumsum(Delta)[h] >= 0  ∀h=0..N-1   → massa verso sinistra → BP <=_st ref
 
 Per bernstein_op_{upper,lower}: W_ref = W_bernstein_op  (SO rispetto all'operatore)
-Per scipy_{upper,lower}:        W_ref = W_scipy          (SO rispetto all'ottimo)
-Per pytorch_upper:               W_ref = W_scipy          (idem, con penalità soft)
+Per scipy_{upper,lower}:        W_ref = W_scipy         (SO rispetto all'ottimo)
+Per pytorch_upper:              W_ref = W_scipy         (idem, con penalità soft)
 
 sum(Delta) = 0 è garantito dal vincolo di misura unitaria:
     sum(W_new) = N+1  e  sum(W_ref) = N+1  →  sum(Delta) = 0
@@ -70,7 +70,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     M = basis_matrix(N, x)
     dx = x[1] - x[0]
 
-    # Inizializzo i pesi
+    # Inizializza i pesi
     t0 = time.perf_counter()
     W_init  = bernstein_operator_init(N, x, f)
     t = (time.perf_counter() - t0) * 1e3
@@ -126,7 +126,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     _print_w_delta('bernstein_op_lower', W_bo_lo, D_bo_lo)
     
     # Ing-Cane
-    # Niente SO perché ing cane non può dare garanzie su questo
+    # Niente SO perché ing-cane non può dare garanzie su questo
     t0 = time.perf_counter()
     W_ic = solve_ing_cane(N, x, f)
     t = (time.perf_counter() - t0) * 1e3
@@ -135,7 +135,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     _print_w_delta('ing_cane', W_ic)
     
     # Scipy unconstrained
-    # Scipy senza SO dovrebbe sempre essere il migliore (MSE = 0 o giù di lì)
+    # Scipy senza SO dovrebbe sempre essere il migliore (MSE = 0)
     t0 = time.perf_counter()
     W_scipy, _ = solve_scipy(N, x, f, W_init=W_init.copy())
     t_scipy = (time.perf_counter() - t0) * 1e3
@@ -146,7 +146,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     
     # Scipy + SO upper
     # Variabile: Delta = W_new - W_scipy.
-    # Soglia SO: cumsum(W_new)[h] <= (N+1)*F_f(h/N)  - rispetto alla CDF di f.
+    # Soglia SO: cumsum(W_new)[h] <= (N+1)*F_f(h/N) - rispetto alla CDF di f.
     # Se W_scipy ≈ f, la soglia coincide con cumsum(W_scipy) e si forza
     # uno shift reale verso destra.
     t0 = time.perf_counter()

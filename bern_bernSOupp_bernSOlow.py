@@ -296,7 +296,7 @@ def plot_bern_so(results: dict, save_path: str | None = None):
 
     fig, ax = plt.subplots(figsize=(9, 5))
     fig.suptitle(
-        f'Bernstein — Riepilogo SO  |  {name}  (N={N})\n'
+        f'Bernstein - Riepilogo SO  |  {name}  (N={N})\n'
         f'upper: {"✓" if so_up_sat else "✗"}   '
         f'lower: {"✓" if so_lo_sat else "✗"}',
         fontsize=11, fontweight='bold'
@@ -331,7 +331,7 @@ def plot_bern_so(results: dict, save_path: str | None = None):
 # ---------------------------------------------------
 f1 = stats.beta(4, 10).pdf(x)
 
-r1 = run_bernstein('Beta(4,10) — unimodale', N, x, f1)
+r1 = run_bernstein('Beta(4,10) - unimodale', N, x, f1)
 plot_bern_pdf(r1, save_path=f'{OUT}/exp1_bern_pdf.png')
 plot_bern_cdf(r1, save_path=f'{OUT}/exp1_bern_cdf.png')
 plot_bern_weights(r1, save_path=f'{OUT}/exp1_bern_weights.png')

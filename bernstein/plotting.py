@@ -142,7 +142,7 @@ def plot_weights(results: dict, save_path: str | None = None):
     if len(keys) == 1:
         axes = [axes]
 
-    fig.suptitle(f'Pesi W — {results["name"]}  (N={N})',
+    fig.suptitle(f'Pesi W - {results["name"]}  (N={N})',
                  fontsize=11, fontweight='bold')
 
     for ax, key in zip(axes, keys):
@@ -264,7 +264,7 @@ def plot_so_single(results: dict, key: str, direction: str,
 
     fig, (ax_full, ax_zoom) = plt.subplots(1, 2, figsize=(11, 4.5))
     fig.suptitle(
-        f'SO {dir_str} — {st["label"]}\n'
+        f'SO {dir_str} - {st["label"]}\n'
         f'{name}  (N={N})   {sat_str}   '
         f'margine min = {np.abs(delta_cdf).min():.4f}',
         fontsize=10, fontweight='bold'

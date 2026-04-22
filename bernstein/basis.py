@@ -31,10 +31,12 @@ def basis_matrix(N: int, x: np.ndarray) -> np.ndarray:
     return M
 
 
-# Al posto di fare la sommatoria esplicita per trovare
-# il valore del polinomio si fa il prodotto matriciale
-# fra la base di bernstein ed i pesi (meglio computazionalmente)
 def eval_bp(W: np.ndarray, M: np.ndarray) -> np.ndarray:
+    """ 
+    Al posto di fare la sommatoria esplicita per trovare
+    il valore del polinomio si fa il prodotto matriciale
+    fra la base di bernstein ed i pesi (meglio computazionalmente)
+    """
     return M @ W
 
 

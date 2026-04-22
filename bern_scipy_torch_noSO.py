@@ -195,7 +195,7 @@ def plot_simple_weights(results: dict, save_path: str | None = None):
 
 f1 = stats.beta(4, 10).pdf(x)
 
-r1 = run_simple('Beta(4,10) — unimodale', N, x, f1, epochs_pt=3000)
+r1 = run_simple('Beta(4,10) - unimodale', N, x, f1, epochs_pt=3000)
 plot_simple_pdf(r1, save_path=f'{OUT}/exp1_simple_pdf.png')
 plot_simple_cdf(r1, save_path=f'{OUT}/exp1_simple_cdf.png')
 plot_simple_weights(r1, save_path=f'{OUT}/exp1_simple_weights.png')
