@@ -219,6 +219,8 @@ print("  → Esperimento 2 completato.")
 # ----------------------------------------------------
 f3 = 0.5 * stats.beta(3, 10).pdf(x) + 0.5 * stats.beta(10, 3).pdf(x)
 
+f3 = f3 / np.trapezoid(f3, x)
+
 r3 = run_simple('Beta mixture bimodale', N, x, f3, epochs_pt=5000)
 plot_simple_pdf(r3, save_path=f'{OUT}/exp3_simple_pdf.png')
 plot_simple_cdf(r3, save_path=f'{OUT}/exp3_simple_cdf.png')

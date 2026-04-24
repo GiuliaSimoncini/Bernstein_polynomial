@@ -75,3 +75,31 @@ plot_so_single(r2, 'bernstein_op_lower', 'lower',
                save_path=f'{OUT}/exp2_bo_so_lower.png')
 plot_so_summary(r2, save_path=f'{OUT}/exp2_so_summary.png')
 print("  → Esperimento 2 completato.")
+
+# -----------------------------------------------------
+#  Esperimento 3 — Beta mixture bimodale
+#  0.5*Beta(3,10) + 0.5*Beta(10,3), moda ~0.18 e ~0.82
+# -----------------------------------------------------
+f3 = 0.5 * stats.beta(3, 10).pdf(x) + 0.5 * stats.beta(10, 3).pdf(x)
+
+f3 = f3 / np.trapezoid(f3, x)   # normalizzazione tipo PDF
+
+r3 = run_experiment("Beta mixture bimodale 0.5*Beta(3,10) + 0.5*Beta(10,3)", N, x, f3, epochs_pt=5000)
+
+plot_pdf_comparison(r3, save_path=f'{OUT}/exp3_pdf.png')
+plot_cdf_all(r3, save_path=f'{OUT}/exp3_cdf.png')
+plot_weights(r3, save_path=f'{OUT}/exp3_weights.png')
+plot_delta(r3, save_path=f'{OUT}/exp3_delta.png')
+
+plot_so_single(r3, 'scipy_upper', 'upper',
+               save_path=f'{OUT}/exp3_so_upper.png')
+plot_so_single(r3, 'scipy_lower', 'lower',
+               save_path=f'{OUT}/exp3_so_lower.png')
+plot_so_single(r3, 'bernstein_op_upper', 'upper',
+               save_path=f'{OUT}/exp3_bo_so_upper.png')
+plot_so_single(r3, 'bernstein_op_lower', 'lower',
+               save_path=f'{OUT}/exp3_bo_so_lower.png')
+
+plot_so_summary(r3, save_path=f'{OUT}/exp3_so_summary.png')
+
+print("  → Esperimento 3 completato bimodale somma beta.")

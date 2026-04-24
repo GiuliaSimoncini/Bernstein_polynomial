@@ -153,9 +153,9 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     W_up, D_up = solve_scipy(N, x, f,
                              W_init=W_scipy.copy(),
                              direction='upper',
-                             W_ref=W_scipy.copy())
+                             W_ref=W_init.copy())
     t = (time.perf_counter() - t0) * 1e3 + t_scipy
-    so_up = check_order(W_up, W_scipy, 'upper')
+    so_up = check_order(W_up, W_init, 'upper')
     m = _store('scipy_upper', W_up, t, Delta=D_up)
     results['scipy_upper']['so'] = so_up
     results['scipy_upper']['W_ref'] = W_scipy.copy()
@@ -168,9 +168,9 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     W_lo, D_lo = solve_scipy(N, x, f,
                              W_init=W_scipy.copy(),
                              direction='lower',
-                             W_ref=W_scipy.copy())
+                             W_ref=W_init.copy())
     t = (time.perf_counter() - t0) * 1e3 + t_scipy
-    so_lo = check_order(W_lo, W_scipy, 'lower')
+    so_lo = check_order(W_lo, W_init, 'lower')
     m = _store('scipy_lower', W_lo, t, Delta=D_lo)
     results['scipy_lower']['so'] = so_lo
     results['scipy_lower']['W_ref'] = W_scipy.copy()

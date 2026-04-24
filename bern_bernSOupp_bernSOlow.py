@@ -359,6 +359,8 @@ print("  → Esperimento 2 completato.")
 # -----------------------------------------------------
 f3 = 0.5 * stats.beta(3, 10).pdf(x) + 0.5 * stats.beta(10, 3).pdf(x)
 
+f3 = f3 / np.trapezoid(f3, x)
+
 r3 = run_bernstein('Beta mixture bimodale', N, x, f3)
 plot_bern_pdf(r3, save_path=f'{OUT}/exp3_bern_pdf.png')
 plot_bern_cdf(r3, save_path=f'{OUT}/exp3_bern_cdf.png')

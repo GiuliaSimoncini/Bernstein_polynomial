@@ -182,6 +182,7 @@ if __name__ == "__main__":
     
     # Esperimento 3
     f3 = 0.5 * stats.beta(3, 10).pdf(x) + 0.5 * stats.beta(10, 3).pdf(x)
+    f3 = f3 / np.trapezoid(f3, x)
     run_experiment('Beta_Bimodale', 3, f3)
     
     print(f"\n Tutti i grafici sono stati salvati nella cartella '{OUT}'.")
