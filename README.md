@@ -137,7 +137,7 @@ Aggiunge alla loss un termine per le violazioni del vincolo SO:
 
 $$\mathcal{L}(W) = \text{MSE}(W) + \lambda \sum_h \max(0, \text{cumsum}(\Delta)[h] \cdot \text{segno})^2$$
 
-dove $\text{segno} = +1$ per upper (viola se $\text{cumsum}(\Delta) > 0$) e $\text{segno} = -1$ per lower. $W_{\text{ref}} = W_{\text{scipy}}$.
+dove $\text{segno} = +1$ per upper (viola se $\text{cumsum}(\Delta) > 0$) e $\text{segno} = -1$ per lower. $W_{\text{ref}} = W_{\text{pytorch}}$.
 
 **Differenza fondamentale rispetto a Scipy+SO**: la penalità è un'approssimazione *soft*, nessun valore di $\lambda$ garantisce il vincolo esatto. Scipy SLSQP impone invece un vincolo *hard*. Nei nostri esperimenti, PyTorch+penalità può ancora violare il vincolo SO (SO:✗) anche con $\lambda=200$, mentre Scipy+SO è sempre ✓.
 
@@ -205,7 +205,7 @@ Questo è un punto concettuale importante. `bernstein_op_upper` e `bernstein_op_
 | `scipy` | - | SLSQP non vincolato |
 | `scipy_upper/lower` | SLSQP non vincolato | SLSQP vincolato |
 | `pytorch` | - | Gradient descent (Adam) |
-| `pytorch_upper` | SLSQP non vincolato | Gradient descent con penalità |
+| `pytorch_upper` | Grandient descent (Adam) | Gradient descent con penalità |
 
 In pratica `bernstein_op_upper` risponde alla domanda: *"Qual è il BP che minimizza l'MSE con il vincolo di essere stocasticamente maggiore dell'operatore di Bernstein?"*. Per questo motivo hanno quasi sempre MSE **inferiore** a `bernstein_op`: SLSQP ottimizza attivamente a partire da quel punto.
 
