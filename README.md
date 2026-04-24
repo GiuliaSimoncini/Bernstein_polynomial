@@ -80,13 +80,13 @@ Equivale a: $\text{cumsum}(W_{\text{new}})[h] \ge \text{cumsum}(W_{\text{ref}})[
 
 ### A quale riferimento si applica il SO?
 
-Il sistema implementa SO rispetto a **due diversi punti di riferimento**, a seconda del metodo:
+Il sistema implementa SO rispetto a **tre diversi punti di riferimento**, a seconda del metodo:
 
 | Metodo | $W_{\text{ref}}$ | Significato |
 |---|---|---|
 | `bernstein_op_upper/lower` | $W_{\text{bernsteinOp}}$ | SO rispetto all'operatore di Bernstein classico |
 | `scipy_upper/lower` | $W_{\text{scipy}}$ | SO rispetto all'ottimo non vincolato (MSE minimo) |
-| `pytorch_upper` | $W_{\text{pytorch}}$ | idem, con vincolo soft (penalità) |
+| `pytorch_upper` | $W_{\text{pytorch}}$ | SO rispetto all'ottimo di pytorch, con vincolo soft (penalità) |
 
 ---
 
@@ -205,7 +205,7 @@ Questo è un punto concettuale importante. `bernstein_op_upper` e `bernstein_op_
 | `scipy` | - | SLSQP non vincolato |
 | `scipy_upper/lower` | SLSQP non vincolato | SLSQP vincolato |
 | `pytorch` | - | Gradient descent (Adam) |
-| `pytorch_upper` | Grandient descent (Adam) | Gradient descent con penalità |
+| `pytorch_upper` | Gradient descent (Adam) | Gradient descent con penalità |
 
 In pratica `bernstein_op_upper` risponde alla domanda: *"Qual è il BP che minimizza l'MSE con il vincolo di essere stocasticamente maggiore dell'operatore di Bernstein?"*. Per questo motivo hanno quasi sempre MSE **inferiore** a `bernstein_op`: SLSQP ottimizza attivamente a partire da quel punto.
 
