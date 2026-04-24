@@ -86,7 +86,7 @@ Il sistema implementa SO rispetto a **due diversi punti di riferimento**, a seco
 |---|---|---|
 | `bernstein_op_upper/lower` | $W_{\text{bernsteinOp}}$ | SO rispetto all'operatore di Bernstein classico |
 | `scipy_upper/lower` | $W_{\text{scipy}}$ | SO rispetto all'ottimo non vincolato (MSE minimo) |
-| `pytorch_upper` | $W_{\text{scipy}}$ | idem, con vincolo soft (penalità) |
+| `pytorch_upper` | $W_{\text{pytorch}}$ | idem, con vincolo soft (penalità) |
 
 ---
 

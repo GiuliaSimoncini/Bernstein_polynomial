@@ -188,19 +188,19 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     print(f"\n  PyTorch                 MSE={m:.7f}   t={t_pytorch:8.2f} ms")
     _print_w_delta('pytorch', W_pt)
 
-    # PyTorch + SO upper (W_ref = W_scipy)
+    # PyTorch + SO upper (W_ref = W_pytorch)
     # Aggiunge ordinamento stocastico, per farlo usa delle penalità
     # quando l'approssimazione non rispetta l'ordinamento.
     # In questo modo il gradient descent riesce ad auto bilanciarsi
     # e trovare i pesi per far funzionare tutto
     t0 = time.perf_counter()
-    W_pt_up, D_pt_up = solve_pytorch_ordered(N, x, f, W_scipy.copy(),
+    W_pt_up, D_pt_up = solve_pytorch_ordered(N, x, f, W_pt.copy(),
                                              direction='upper')
     t = (time.perf_counter() - t0) * 1e3 + t_pytorch
-    so = check_order(W_pt_up, W_scipy, 'upper')
+    so = check_order(W_pt_up, W_pt, 'upper')
     m = _store('pytorch_upper', W_pt_up, t, Delta=D_pt_up)
     results['pytorch_upper']['so'] = so
-    results['pytorch_upper']['W_ref'] = W_scipy.copy()
+    results['pytorch_upper']['W_ref'] = W_pt.copy()
     sat = '✓' if so['satisfied'] else '✗'
     print(f"\n  PyTorch + SO (pen.)     MSE={m:.7f}   t={t:8.2f} ms  SO:{sat}")
     _print_w_delta('pytorch_upper', W_pt_up, D_pt_up)

@@ -134,7 +134,7 @@ def plot_weights(results: dict, save_path: str | None = None):
     N = results['N']
     nodes = np.arange(N + 1)
     keys = [k for k in ['bernstein_op', 'scipy', 'scipy_upper', 'scipy_lower',
-                        'bernstein_op_upper', 'bernstein_op_lower', 'pytorch']
+                        'bernstein_op_upper', 'bernstein_op_lower', 'pytorch', 'pytorch_upper']
             if k in results]
 
     fig, axes = plt.subplots(1, len(keys), figsize=(len(keys) * 3.2, 4),
