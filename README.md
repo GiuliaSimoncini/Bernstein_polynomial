@@ -80,13 +80,34 @@ Equivale a: $\text{cumsum}(W_{\text{new}})[h] \ge \text{cumsum}(W_{\text{ref}})[
 
 ### A quale riferimento si applica il SO?
 
-Il sistema implementa SO rispetto a **tre diversi punti di riferimento**, a seconda del metodo:
+Il sistema implementa SO rispetto a **un unico punto di riferimento** ($W_{\text{ref}}$), ma varia ($W_{\text{init}}$):
 
-| Metodo | $W_{\text{ref}}$ | Significato |
-|---|---|---|
-| `bernstein_op_upper/lower` | $W_{\text{bernsteinOp}}$ | SO rispetto all'operatore di Bernstein classico |
-| `scipy_upper/lower` | $W_{\text{scipy}}$ | SO rispetto all'ottimo non vincolato (MSE minimo) |
-| `pytorch_upper` | $W_{\text{pytorch}}$ | SO rispetto all'ottimo di pytorch, con vincolo soft (penalità) |
+| Metodo | $W_{\text{init}}$ |$W_{\text{ref}}$ | Significato di $W_{\text{ref}}$ |
+|---|---|---|---|
+| `bernstein_op_upper/lower` | $W_{\text{bernsteinOp}}$ |$W_{\text{bernsteinOp}}$ | SO rispetto all'operatore di Bernstein classico |
+| `scipy_upper/lower` | $W_{\text{scipy}}$ | $W_{\text{bernsteinOp}}$ | SO rispetto all'operatore di Bernstein classico |
+| `pytorch_upper` | $W_{\text{pytorch}}$ | $W_{\text{bernsteinOp}}$ | SO rispetto all'operatore di Bernstein classico |
+
+
+#### La Scelta dei Pesi Iniziali e di Riferimento
+
+Nel contesto dell'ottimizzazione vincolata, i parametri di inizializzazione e di riferimento svolgono ruoli matematici e operativi profondamente diversi:
+
+- **`W_init`**: rappresenta il punto di partenza dell'algoritmo nello spazio delle soluzioni. È fondamentale per garantire stabilità numerica e una convergenza rapida.
+- **`W_ref`**: costituisce l'ancora matematica del vincolo, ovvero la distribuzione di probabilità di base rispetto alla quale viene calcolato e imposto l'ordinamento stocastico (lo spostamento della funzione di ripartizione).
+
+La selezione di questi parametri varia a seconda del solutore utilizzato, seguendo specifiche logiche di ottimizzazione:
+
+- **Bernstein Operator (`bernstein_op_upper/lower`)**
+  - **`W_init` e `W_ref` coincidono (`W_bernsteinOp`)**: essendo l'operatore di Bernstein classico una formula analitica chiusa e non un processo iterativo, agisce come punto di partenza di se stesso. Il vincolo di ordinamento stocastico viene calcolato applicando la perturbazione direttamente sull'approssimazione teorica di base.
+
+- **Solutore SciPy SLSQP (`scipy_upper/lower`)**
+  - **Inizializzazione (`W_init = W_scipy`)**: l'algoritmo SLSQP parte dai pesi ottimali già calcolati nel caso non vincolato. È una scelta strategica di efficienza: partendo da una curva che garantisce già il minimo Errore Quadratico Medio (MSE), l'ottimizzatore deve unicamente applicare la minima deformazione necessaria per rientrare nel recinto del vincolo SO.
+  - **Riferimento (`W_ref = W_bernsteinOp`)**: l'ordinamento stocastico viene calcolato e imposto rispetto ai pesi analitici dell'operatore di Bernstein. Questa è una scelta di robustezza teorica: mentre l'ottimizzazione pura di SciPy può introdurre lievi artefatti numerici o overfitting per abbattere l'MSE, l'operatore di Bernstein rappresenta il campionamento naturale e la vera forma probabilistica della funzione bersaglio. Usarlo come riferimento garantisce che lo spostamento della massa (dominanza stocastica) avvenga rispetto a una base solida, liscia e matematicamente garantita.
+
+- **Solutore PyTorch Adam (`pytorch_upper/lower`)**
+  - **Inizializzazione (`W_init = W_pytorch`)**: Si adotta una strategia di partenza a caldo (*warm start*). Fornendo all'ottimizzatore Adam i pesi che hanno già minimizzato l'MSE nel caso non vincolato, la rete non deve sprecare epoche per ricercare la forma base della curva. L'algoritmo parte da una posizione di eccellenza per quanto riguarda l'errore e può concentrarsi fin dalla prima iterazione esclusivamente sull'adattamento necessario per soddisfare il vincolo.
+  - **Riferimento (`W_ref = W_bernstein`)**: Il vincolo (implementato come *soft penalty* differenziabile) viene valutato e calcolato rispetto all'operatore analitico di Bernstein. Questa è una scelta mirata alla stabilità e al rigore teorico: l'ottimizzazione pura di PyTorch, a causa dell'architettura non lineare introdotta dalla funzione Softmax, può generare distribuzioni di pesi interne caotiche o rumorose. Ancorare la penalità all'operatore di Bernstein garantisce che lo spostamento della massa (ordinamento stocastico) venga misurato e forzato rispetto a una curva base liscia, matematicamente pura e priva degli artefatti numerici tipici dell'addestramento neurale.
 
 ---
 
@@ -115,7 +136,7 @@ I vincoli sono gestiti **esattamente** (non come penalità):
 
 **Versione non vincolata** (`scipy`): trova l'ottimo globale del problema convesso. $\Delta = 0$ per costruzione ($W_{\text{ref}} = W_{\text{init}}$ = warm-start).
 
-**Versione SO** (`scipy_upper/lower`): $W_{\text{ref}} = W_{\text{scipy}}$ (l'ottimo non vincolato). I vincoli $\text{cumsum}(\Delta) \le 0$ / $\ge 0$ rimpiccioliscono il feasible set ma mantengono la convessità del problema. SLSQP garantisce l'ottimo locale nel feasible set SO che per questo problema è globale.
+**Versione SO** (`scipy_upper/lower`): $W_{\text{ref}} = W_{\text{bernsteinOp}}$: adotta una strategia ibrida per massimizzare sia l'efficienza che il rigore teorico. L'algoritmo viene inizializzato sull'ottimo non vincolato ($W_{\text{init}} = W_{\text{scipy}}$) sfruttando un *warm-start* per abbattere i tempi di convergenza. Tuttavia, il vincolo di ordinamento stocastico viene calcolato e imposto rispetto all'operatore analitico ($W_{\text{ref}} = W_{\text{bernsteinOp}}$). Questo garantisce che la traslazione della massa probabilistica avvenga rispetto alla distribuzione vera, liscia e naturale del fenomeno, impedendo all'algoritmo di assecondare eventuali artefatti numerici (overfitting) preesistenti nell'ottimo di SciPy.
 
 **Versione SO da BernOp** (`bernstein_op_upper/lower`): $W_{\text{ref}} = W_{\text{bernsteinOp}}$. Il vincolo SO è ora rispetto al punto di partenza dell'operatore classico, non rispetto all'ottimo. Produce un BP che è vincolato a stare stocasticamente sopra/sotto l'operatore di Bernstein.
 
@@ -137,7 +158,7 @@ Aggiunge alla loss un termine per le violazioni del vincolo SO:
 
 $$\mathcal{L}(W) = \text{MSE}(W) + \lambda \sum_h \max(0, \text{cumsum}(\Delta)[h] \cdot \text{segno})^2$$
 
-dove $\text{segno} = +1$ per upper (viola se $\text{cumsum}(\Delta) > 0$) e $\text{segno} = -1$ per lower. $W_{\text{ref}} = W_{\text{pytorch}}$.
+dove $\text{segno} = +1$ per upper (viola se $\text{cumsum}(\Delta) > 0$) e $\text{segno} = -1$ per lower. $W_{\text{ref}} = W_{\text{bernsteinOp}}$.
 
 **Differenza fondamentale rispetto a Scipy+SO**: la penalità è un'approssimazione *soft*, nessun valore di $\lambda$ garantisce il vincolo esatto. Scipy SLSQP impone invece un vincolo *hard*. Nei nostri esperimenti, PyTorch+penalità può ancora violare il vincolo SO (SO:✗) anche con $\lambda=200$, mentre Scipy+SO è sempre ✓.
 
@@ -203,9 +224,9 @@ Questo è un punto concettuale importante. `bernstein_op_upper` e `bernstein_op_
 | `bernstein_op` | Operatore di Bernstein | nessuno (formula chiusa) |
 | `bernstein_op_upper/lower` | Operatore di Bernstein | SLSQP vincolato |
 | `scipy` | - | SLSQP non vincolato |
-| `scipy_upper/lower` | SLSQP non vincolato | SLSQP vincolato |
+| `scipy_upper/lower` | Operatore di Bernstein | SLSQP vincolato |
 | `pytorch` | - | Gradient descent (Adam) |
-| `pytorch_upper` | Gradient descent (Adam) | Gradient descent con penalità |
+| `pytorch_upper` | Operatore di Bernstein | Gradient descent con penalità |
 
 In pratica `bernstein_op_upper` risponde alla domanda: *"Qual è il BP che minimizza l'MSE con il vincolo di essere stocasticamente maggiore dell'operatore di Bernstein?"*. Per questo motivo hanno quasi sempre MSE **inferiore** a `bernstein_op`: SLSQP ottimizza attivamente a partire da quel punto.
 

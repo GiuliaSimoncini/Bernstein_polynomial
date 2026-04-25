@@ -158,7 +158,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     so_up = check_order(W_up, W_init, 'upper')
     m = _store('scipy_upper', W_up, t, Delta=D_up)
     results['scipy_upper']['so'] = so_up
-    results['scipy_upper']['W_ref'] = W_scipy.copy()
+    results['scipy_upper']['W_ref'] = W_init.copy()
     sat = '✓' if so_up['satisfied'] else '✗'
     print(f"\n  Scipy + SO upper        MSE={m:.7f}   t={t:8.2f} ms  SO:{sat}")
     _print_w_delta('scipy_upper', W_up, D_up)
@@ -173,7 +173,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     so_lo = check_order(W_lo, W_init, 'lower')
     m = _store('scipy_lower', W_lo, t, Delta=D_lo)
     results['scipy_lower']['so'] = so_lo
-    results['scipy_lower']['W_ref'] = W_scipy.copy()
+    results['scipy_lower']['W_ref'] = W_init.copy()
     sat = '✓' if so_lo['satisfied'] else '✗'
     print(f"\n  Scipy + SO lower        MSE={m:.7f}   t={t:8.2f} ms  SO:{sat}")
     _print_w_delta('scipy_lower', W_lo, D_lo)
@@ -188,19 +188,19 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     print(f"\n  PyTorch                 MSE={m:.7f}   t={t_pytorch:8.2f} ms")
     _print_w_delta('pytorch', W_pt)
 
-    # PyTorch + SO upper (W_ref = W_pytorch)
+    # PyTorch + SO upper (W_ref = W_bernstein)
     # Aggiunge ordinamento stocastico, per farlo usa delle penalità
     # quando l'approssimazione non rispetta l'ordinamento.
     # In questo modo il gradient descent riesce ad auto bilanciarsi
     # e trovare i pesi per far funzionare tutto
     t0 = time.perf_counter()
-    W_pt_up, D_pt_up = solve_pytorch_ordered(N, x, f, W_pt.copy(),
+    W_pt_up, D_pt_up = solve_pytorch_ordered(N, x, f, W_init.copy(),
                                              direction='upper')
-    t = (time.perf_counter() - t0) * 1e3 + t_pytorch
-    so = check_order(W_pt_up, W_pt, 'upper')
+    t = (time.perf_counter() - t0) * 1e3
+    so = check_order(W_pt_up, W_init, 'upper')
     m = _store('pytorch_upper', W_pt_up, t, Delta=D_pt_up)
     results['pytorch_upper']['so'] = so
-    results['pytorch_upper']['W_ref'] = W_pt.copy()
+    results['pytorch_upper']['W_ref'] = W_init.copy()
     sat = '✓' if so['satisfied'] else '✗'
     print(f"\n  PyTorch + SO (pen.)     MSE={m:.7f}   t={t:8.2f} ms  SO:{sat}")
     _print_w_delta('pytorch_upper', W_pt_up, D_pt_up)

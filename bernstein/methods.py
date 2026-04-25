@@ -211,7 +211,12 @@ def solve_pytorch_ordered(N: int, x: np.ndarray, f: np.ndarray,
     f_t = torch.tensor(f, dtype=torch.float32)
     Wr_t = torch.tensor(W_ref, dtype=torch.float32)
 
-    W_raw = nn.Parameter(torch.zeros(N + 1))
+    # W_init: Pytorch unconstrained solution
+    W_init = solve_pytorch(N, x, f)
+
+    # softmax parametrization coerente con W_init
+    w0 = torch.tensor(W_init / (N + 1), dtype=torch.float32)
+    W_raw = nn.Parameter(torch.log(w0))
     opt = optim.Adam([W_raw], lr=lr)
 
     for _ in range(epochs):
