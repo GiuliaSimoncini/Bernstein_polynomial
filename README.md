@@ -68,7 +68,7 @@ I vincoli SO si traducono in **vincoli lineari su $\text{cumsum}(\Delta)$**, dov
 
 #### Vincolo 3-upper - BP stocasticamente MAGGIORE del riferimento
 
-$$\sum_{n=0}^h \Delta[n] \le 0 \quad \implies \quad \text{cumsum}(\Delta)[h] \le 0 \quad \forall h = 0, \dots, N-1$$
+$$\sum_{n=0}^h \Delta[n] \le 0 \quad \iff \quad \text{cumsum}(\Delta)[h] \le 0 \quad \forall h = 0, \dots, N-1$$
 
 Equivale a: $\text{cumsum}(W_{\text{new}})[h] \le \text{cumsum}(W_{\text{ref}})[h]$ ossia i pesi si spostano verso destra. La CDF del BP sta **sotto** quella di riferimento, quindi il BP ha **più massa a destra**: $X_{BP} \ge_{st} X_{\text{ref}}$.
 
