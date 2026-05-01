@@ -54,7 +54,7 @@ plot_so_summary(r1, save_path=f'{OUT}/exp1_so_summary.png')
 print("  → Esperimento 1 completato.")
 
 # --------------------------------------------------------------
-#  Esperimento 2 — Polinomio x^3(1-x)^2, grado 5, moda in x=0.6
+#  Esperimento 2 - Polinomio x^3(1-x)^2, grado 5, moda in x=0.6
 # --------------------------------------------------------------
 f2_raw = x ** 3 * (1 - x) ** 2
 f2 = f2_raw / np.trapezoid(f2_raw, x)
@@ -77,7 +77,7 @@ plot_so_summary(r2, save_path=f'{OUT}/exp2_so_summary.png')
 print("  → Esperimento 2 completato.")
 
 # -----------------------------------------------------
-#  Esperimento 3 — Beta mixture bimodale
+#  Esperimento 3 - Beta mixture bimodale
 #  0.5*Beta(3,10) + 0.5*Beta(10,3), moda ~0.18 e ~0.82
 # -----------------------------------------------------
 f3 = 0.5 * stats.beta(3, 10).pdf(x) + 0.5 * stats.beta(10, 3).pdf(x)

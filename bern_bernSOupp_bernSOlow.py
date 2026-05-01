@@ -80,7 +80,7 @@ def run_bernstein(name: str, N: int, x: np.ndarray, f: np.ndarray) -> dict:
                              W_init=W_init.copy(),
                              direction='upper',
                              W_ref=W_init.copy())
-    t = (time.perf_counter() - t0) * 1e3 + t_bern
+    t = (time.perf_counter() - t0) * 1e3
     so_up = check_order(W_up, W_init, 'upper')
     m     = mse(W_up, M, f)
     results['bernstein_op_upper'] = dict(W=W_up, mse=m, time_ms=t,
@@ -97,7 +97,7 @@ def run_bernstein(name: str, N: int, x: np.ndarray, f: np.ndarray) -> dict:
                              W_init=W_init.copy(),
                              direction='lower',
                              W_ref=W_init.copy())
-    t = (time.perf_counter() - t0) * 1e3 + t_bern
+    t = (time.perf_counter() - t0) * 1e3
     so_lo = check_order(W_lo, W_init, 'lower')
     m     = mse(W_lo, M, f)
     results['bernstein_op_lower'] = dict(W=W_lo, mse=m, time_ms=t,

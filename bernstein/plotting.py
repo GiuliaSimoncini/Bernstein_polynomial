@@ -258,7 +258,11 @@ def plot_so_single(results: dict, key: str, direction: str,
     x_hi = min(x[-1], x_crit + zoom_hw)
     mask = (x >= x_lo) & (x <= x_hi)
 
-    sat_str = '✓ Soddisfatto' if so.get('satisfied', False) else '✗ Violato'
+    # Variabili dinamiche per stato e simbolo
+    is_satisfied = so.get('satisfied', False)
+    sat_str = '✓ Soddisfatto' if is_satisfied else '✗ Violato'
+    tick_sym = '✓' if is_satisfied else '✗'
+
     dir_str = 'upper  (F_approx ≥ F_target)' if direction == 'upper' \
               else 'lower  (F_approx ≤ F_target)'
 
@@ -279,16 +283,17 @@ def plot_so_single(results: dict, key: str, direction: str,
         ax.plot(xdata, cdf_a_data, color=st['color'], lw=2,
                 label=f'CDF {st["label"]}')
 
+        # Inserimento dinamico del tick_sym
         if direction == 'upper':
             ax.fill_between(xdata, cdf_t_data, cdf_a_data,
                             where=(cdf_a_data >= cdf_t_data),
                             color=st['color'], alpha=0.18,
-                            label='F_approx ≥ F_target ✓')
+                            label=f'F_approx ≥ F_target {tick_sym}')
         else:
             ax.fill_between(xdata, cdf_a_data, cdf_t_data,
                             where=(cdf_a_data <= cdf_t_data),
                             color=st['color'], alpha=0.18,
-                            label='F_approx ≤ F_target ✓')
+                            label=f'F_approx ≤ F_target {tick_sym}')
 
         ax.set_xlabel('x')
         ax.set_ylabel('CDF')
@@ -304,7 +309,6 @@ def plot_so_single(results: dict, key: str, direction: str,
     if save_path:
         plt.savefig(save_path, dpi=150, bbox_inches='tight')
     plt.close()
-
 
 # 6. SO riepilogo tutti i metodi
 

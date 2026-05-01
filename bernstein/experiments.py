@@ -100,7 +100,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
                                    W_init=W_init.copy(),
                                    direction='upper',
                                    W_ref=W_init.copy())
-    t = (time.perf_counter() - t0) * 1e3 + t_bern
+    t = (time.perf_counter() - t0) * 1e3
     so = check_order(W_bo_up, W_init, 'upper')
     m = _store('bernstein_op_upper', W_bo_up, t, Delta=D_bo_up)
     results['bernstein_op_upper']['so'] = so
@@ -116,7 +116,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
                                    W_init=W_init.copy(),
                                    direction='lower',
                                    W_ref=W_init.copy())
-    t = (time.perf_counter() - t0) * 1e3 + t_bern
+    t = (time.perf_counter() - t0) * 1e3
     so = check_order(W_bo_lo, W_init, 'lower')
     m = _store('bernstein_op_lower', W_bo_lo, t, Delta=D_bo_lo)
     results['bernstein_op_lower']['so'] = so
@@ -154,7 +154,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
                              W_init=W_scipy.copy(),
                              direction='upper',
                              W_ref=W_init.copy())
-    t = (time.perf_counter() - t0) * 1e3 + t_scipy
+    t = (time.perf_counter() - t0) * 1e3
     so_up = check_order(W_up, W_init, 'upper')
     m = _store('scipy_upper', W_up, t, Delta=D_up)
     results['scipy_upper']['so'] = so_up
@@ -169,7 +169,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
                              W_init=W_scipy.copy(),
                              direction='lower',
                              W_ref=W_init.copy())
-    t = (time.perf_counter() - t0) * 1e3 + t_scipy
+    t = (time.perf_counter() - t0) * 1e3
     so_lo = check_order(W_lo, W_init, 'lower')
     m = _store('scipy_lower', W_lo, t, Delta=D_lo)
     results['scipy_lower']['so'] = so_lo
@@ -196,7 +196,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     t0 = time.perf_counter()
     W_pt_up, D_pt_up = solve_pytorch_ordered(N, x, f, W_init.copy(),
                                              direction='upper')
-    t = (time.perf_counter() - t0) * 1e3
+    t = (time.perf_counter() - t0) * 1e3 - t_pytorch
     so = check_order(W_pt_up, W_init, 'upper')
     m = _store('pytorch_upper', W_pt_up, t, Delta=D_pt_up)
     results['pytorch_upper']['so'] = so
