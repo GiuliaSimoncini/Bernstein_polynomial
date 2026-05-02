@@ -1,5 +1,5 @@
 """
-main_huber_conBern_pytorch_penalty.py  -  self-contained
+main_huber_conBern_pytorch_penalty.py - self-contained
 
 Ottimizzazione con Huber loss invece di MAE (L1) o MSE (L2).
 Include tutte le funzioni da basis.py, stochastic.py, methods.py, plotting.py.
@@ -8,6 +8,12 @@ La Huber loss combina il comportamento quadratico (MSE) vicino allo zero
 con quello lineare (MAE) per residui grandi, parametrizzato da delta_hub:
     L_delta(r) = 0.5*r^2                   se |r| <= delta_hub
                = delta_hub*(|r| - 0.5*delta_hub)   altrimenti
+
+12 Esperimenti:
+  1-3: Beta pure
+  4-6: Polinomi puri
+  7-9: Mixture bimodali
+  10-12: Convoluzioni numeriche
 
 Per ciascun esperimento vengono prodotti:
   expN_pdf.png         : PDF confronto + barplot Huber loss
@@ -26,7 +32,6 @@ Per ciascun esperimento vengono prodotti:
 # -------
 import os
 import time
-import warnings
 import numpy as np
 import scipy.stats as stats
 import scipy.optimize as scopt
@@ -47,11 +52,11 @@ os.makedirs(OUT, exist_ok=True)
 DELTA_HUB = 0.5
 
 # --------------------
-# BASIS  (da basis.py)
+# BASIS (da basis.py)
 # --------------------
 
 def basis_matrix(N: int, x: np.ndarray) -> np.ndarray:
-    """Matrice base di Bernstein: M[:,k] = C(N,k)*x^k*(1-x)^(N-k)."""
+    # Matrice base di Bernstein: M[:,k] = C(N,k)*x^k*(1-x)^(N-k)
     M = np.zeros((len(x), N + 1))
     for k in range(N + 1):
         M[:, k] = comb(N, k) * (x ** k) * ((1 - x) ** (N - k))
@@ -66,7 +71,7 @@ def cdf_from_weights(W: np.ndarray, M: np.ndarray, dx: float) -> np.ndarray:
 
 
 def bernstein_operator_init(N: int, x: np.ndarray, f: np.ndarray) -> np.ndarray:
-    """Operatore di Bernstein classico: W[k] = f(k/N), riscalato a sum=N+1."""
+    # Operatore di Bernstein classico: W[k] = f(k/N), riscalato a sum=N+1
     nodes = np.linspace(0, 1, N + 1)
     W = np.interp(nodes, x, f)
     W = np.maximum(W, 0.0)
@@ -76,10 +81,10 @@ def bernstein_operator_init(N: int, x: np.ndarray, f: np.ndarray) -> np.ndarray:
 
 def huber_loss(W: np.ndarray, M: np.ndarray, f: np.ndarray,
                delta: float = DELTA_HUB) -> float:
-    """
-    Huber loss media sui punti della griglia.
-    Quadratica per |residuo| <= delta, lineare altrove.
-    """
+    
+    # Huber loss media sui punti della griglia.
+    # Quadratica per |residuo| <= delta, lineare altrove.
+    
     r = f - M @ W
     abs_r = np.abs(r)
     loss = np.where(abs_r <= delta,
@@ -93,11 +98,11 @@ def huber_loss(W: np.ndarray, M: np.ndarray, f: np.ndarray,
 # -----------------
 
 def make_bp_target(N_high: int, x: np.ndarray, f_orig: np.ndarray) -> np.ndarray:
-    """
-    Proietta f_orig su BP di grado N_high (tramite bernstein_operator_init),
-    restituisce la PDF risultante normalizzata.
-    Utile per creare un target polinomio di grado N_high da ridurre.
-    """
+    
+    # Proietta f_orig su BP di grado N_high (tramite bernstein_operator_init),
+    # restituisce la PDF risultante normalizzata.
+    # Utile per creare un target polinomio di grado N_high da ridurre.
+
     M_high = basis_matrix(N_high, x)
     W_high = bernstein_operator_init(N_high, x, f_orig)
     f_target = M_high @ W_high
@@ -108,10 +113,10 @@ def make_bp_target(N_high: int, x: np.ndarray, f_orig: np.ndarray) -> np.ndarray
 
 
 def make_bp_convolution_target(N1: int, f1: np.ndarray, N2: int, f2: np.ndarray, x: np.ndarray) -> tuple:
-    """
-    Esegue la convoluzione discreta dei pesi di due polinomi di Bernstein.
-    Restituisce la PDF target (normalizzata) e il grado totale risultante.
-    """
+    
+    # Esegue la convoluzione discreta dei pesi di due polinomi di Bernstein.
+    # Restituisce la PDF target (normalizzata) e il grado totale risultante.
+
     # Calcola i pesi iniziali per le due distribuzioni
     W1 = bernstein_operator_init(N1, x, f1)
     W2 = bernstein_operator_init(N2, x, f2)
@@ -145,8 +150,8 @@ def build_scipy_constraints(N: int, direction) -> list:
     """
     Vincoli SLSQP in spazio Delta = W_new - W_ref.
       sum(Delta)=0  (misura unitaria)
-      upper: cumsum(Delta)[h] <= 0   h=0..N-1
-      lower: sum(Delta[h:]) <= 0     h=1..N
+      upper: cumsum(Delta)[h] <= 0   h=0...N-1
+      lower: sum(Delta[h:]) <= 0     h=1...N
     """
     constraints = [{
         'type': 'eq',
@@ -173,7 +178,7 @@ def build_scipy_constraints(N: int, direction) -> list:
 
 
 def stochastic_penalty_torch(W, W_ref_t, direction: str):
-    """Penalità differenziabile per il vincolo di ordine stocastico."""
+    # Penalità differenziabile per il vincolo di ordine stocastico
     Delta = W - W_ref_t
     if direction == 'upper':
         cs = torch.cumsum(Delta, dim=0)[:-1]
@@ -212,11 +217,11 @@ def check_order(cdf_new: np.ndarray, cdf_target: np.ndarray, direction: str, tol
 
 
 # ------------------------------------------------------------------
-# METODI DI OTTIMIZZAZIONE — Huber  (da methods.py, con Huber loss)
+# METODI DI OTTIMIZZAZIONE - Huber (da methods.py, con Huber loss)
 # ------------------------------------------------------------------
 
 def solve_ing_cane(N: int, x: np.ndarray, f: np.ndarray) -> np.ndarray:
-    """Concentra la massa attorno alla moda di f (O(n), chiuso)."""
+    # Concentra la massa attorno alla moda di f (O(n), chiuso)
     mode_x = x[np.argmax(f)]
     k = min(int(np.floor(mode_x * N)), N - 1)
     interval = 1.0 / N
@@ -285,7 +290,7 @@ def solve_scipy_huber(N: int, x: np.ndarray, f: np.ndarray,
 
 
 class _BernsteinModelHuber(nn.Module):
-    """W = softmax(W_raw) * (N+1) — sum=N+1, W>0 per costruzione."""
+    # W = softmax(W_raw) * (N+1) - sum=N+1, W>0 per costruzione
     def __init__(self, N: int):
         super().__init__()
         self.N = N
@@ -332,11 +337,11 @@ def solve_pytorch_ordered_huber(N: int, x: np.ndarray, f: np.ndarray,
                                  delta: float = DELTA_HUB):
     """
     Gradient descent con penalità SO e Huber loss:
-        L(W) = HuberLoss(W) + λ · Σ_h max(0, cumsum(Delta)[h] * segno)²
+        L(W) = HuberLoss(W) + λ * Σ_h max(0, cumsum(Delta)[h] * segno)²
     """
     M_np = basis_matrix(N, x)
     M_t  = torch.tensor(M_np, dtype=torch.float32)
-    f_t  = torch.tensor(f,    dtype=torch.float32)
+    f_t  = torch.tensor(f, dtype=torch.float32)
     Wr_t = torch.tensor(W_ref, dtype=torch.float32)
 
     # Inizializza dai pesi Huber non vincolati
@@ -361,7 +366,7 @@ def solve_pytorch_ordered_huber(N: int, x: np.ndarray, f: np.ndarray,
 
 
 # ---------------------------------
-# RUNNER  (adattato per Huber loss)
+# RUNNER (adattato per Huber loss)
 # ---------------------------------
 
 METHOD_ORDER = ['bernstein_op', 'bernstein_op_upper', 'bernstein_op_lower',
@@ -397,7 +402,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
                    N=N, x=x, f=f, M=M, dx=dx)
 
     def _store(label, W, elapsed, Delta=None):
-        # 'mse' key mantenuta per compatibilità col plotting (contiene Huber loss)
+        # mse key mantenuta per compatibilità col plotting (contiene Huber loss)
         h = huber_loss(W, M, f)
         results[label] = dict(W=W, mse=h, time_ms=elapsed, Delta=Delta)
         return h
@@ -538,7 +543,7 @@ def _cdf_target(f: np.ndarray, dx: float) -> np.ndarray:
 
 
 def _full_title(results: dict, subtitle: str = '') -> str:
-    """Costruisce il titolo completo con nome esperimento e target label."""
+    # Costruisce il titolo completo con nome esperimento e target label
     tl = results.get('target_label', '')
     base = f"{results['name']}  (N={results['N']})"
     if tl:
@@ -713,7 +718,7 @@ def plot_so_single(results: dict, key: str, direction: str, save_path=None):
     fig, (ax_full, ax_zoom) = plt.subplots(1, 2, figsize=(11, 4.5))
     fig.suptitle(
         _full_title(results,
-                    f'SO {dir_str} — {st["label"]} — {sat_str}\n'
+                    f'SO {dir_str} - {st["label"]} - {sat_str}\n'
                     f'margine min={np.abs(delta_cdf).min():.4f}'),
         fontsize=9, fontweight='bold')
 
@@ -790,9 +795,9 @@ def plot_so_summary(results: dict, save_path=None):
 
 def save_all_plots(r: dict, prefix: str):
     plot_pdf_comparison(r, save_path=f'{OUT}/{prefix}_pdf.png')
-    plot_cdf_all       (r, save_path=f'{OUT}/{prefix}_cdf.png')
-    plot_weights       (r, save_path=f'{OUT}/{prefix}_weights.png')
-    plot_delta         (r, save_path=f'{OUT}/{prefix}_delta.png')
+    plot_cdf_all(r, save_path=f'{OUT}/{prefix}_cdf.png')
+    plot_weights(r, save_path=f'{OUT}/{prefix}_weights.png')
+    plot_delta(r, save_path=f'{OUT}/{prefix}_delta.png')
     plot_so_single(r, 'bernstein_op_upper', 'upper',
                    save_path=f'{OUT}/{prefix}_bo_so_upper.png')
     plot_so_single(r, 'bernstein_op_lower', 'lower',
@@ -818,7 +823,7 @@ if __name__ == '__main__':
     # --------------------------------------------
     # Esp 1 - Beta grado 65 -> Approssimante N=32
     # --------------------------------------------
-    print("\n>>> Esperimento 1: Target BP da Beta(33,34) (grado 65) → N=32")
+    print("\n Esperimento 1: Target BP da Beta(33,34) (grado 65) → N=32")
     f1_orig = stats.beta(33, 34).pdf(x)
     f1 = make_bp_target(65, x, f1_orig)
     r1 = run_experiment(
@@ -831,7 +836,7 @@ if __name__ == '__main__':
     # --------------------------------------------
     # Esp 2 - Beta grado 33 -> Approssimante N=16
     # --------------------------------------------
-    print("\n>>> Esperimento 2: Target BP da Beta(17,18) (grado 33) → N=16")
+    print("\n Esperimento 2: Target BP da Beta(17,18) (grado 33) → N=16")
     f2_orig = stats.beta(17, 18).pdf(x)
     f2 = make_bp_target(33, x, f2_orig)
     r2 = run_experiment(
@@ -844,7 +849,7 @@ if __name__ == '__main__':
     # --------------------------------------------
     # Esp 3 - Beta grado 17 -> Approssimante N=8
     # --------------------------------------------
-    print("\n>>> Esperimento 3: Target BP da Beta(9,10) (grado 17) → N=8")
+    print("\n Esperimento 3: Target BP da Beta(9,10) (grado 17) → N=8")
     f3_orig = stats.beta(9, 10).pdf(x)
     f3 = make_bp_target(17, x, f3_orig)
     r3 = run_experiment(
@@ -856,14 +861,15 @@ if __name__ == '__main__':
 
 
     # ------------------------------------------------
-    # GRUPPO B: TARGET POLINOMIO PURO (mappati su BP)
+    # GRUPPO B: TARGET POLINOMIO (mappati su BP)
     # ------------------------------------------------
 
     # --------------------------------------------------
     # Esp 4 - Polinomio grado 65 -> Approssimante N=32
     # --------------------------------------------------
-    print("\n>>> Esperimento 4: Target BP da Polinomio x³³(1-x)³² (grado 65) → N=32")
+    print("\n Esperimento 4: Target BP da Polinomio x³³(1-x)³² (grado 65) → N=32")
     f4_orig = (x ** 33) * ((1 - x) ** 32)
+    f4_orig = f4_orig / np.max(f4_orig)
     f4 = make_bp_target(65, x, f4_orig)
     r4 = run_experiment(
         name='BP Polinomio puro (grado 65)',
@@ -875,8 +881,9 @@ if __name__ == '__main__':
     # -------------------------------------------------
     # Esp 5 - Polinomio grado 33 -> Approssimante N=16
     # -------------------------------------------------
-    print("\n>>> Esperimento 5: Target BP da Polinomio x¹⁷(1-x)¹⁶ (grado 33) → N=16")
+    print("\n Esperimento 5: Target BP da Polinomio x¹⁷(1-x)¹⁶ (grado 33) → N=16")
     f5_orig = (x ** 17) * ((1 - x) ** 16)
+    f5_orig = f5_orig / np.max(f5_orig)
     f5 = make_bp_target(33, x, f5_orig)
     r5 = run_experiment(
         name='BP Polinomio puro (grado 33)',
@@ -888,8 +895,9 @@ if __name__ == '__main__':
     # ------------------------------------------------
     # Esp 6 - Polinomio grado 17 -> Approssimante N=8
     # ------------------------------------------------
-    print("\n>>> Esperimento 6: Target BP da Polinomio x⁹(1-x)⁸ (grado 17) → N=8")
+    print("\n Esperimento 6: Target BP da Polinomio x⁹(1-x)⁸ (grado 17) → N=8")
     f6_orig = (x ** 9) * ((1 - x) ** 8)
+    f6_orig = f6_orig / np.max(f6_orig)
     f6 = make_bp_target(17, x, f6_orig)
     r6 = run_experiment(
         name='BP Polinomio puro (grado 17)',
@@ -906,7 +914,7 @@ if __name__ == '__main__':
     # ------------------------------------------------
     # Esp 7 - Mixture grado 65 -> Approssimante N=32
     # ------------------------------------------------
-    print("\n>>> Esperimento 7: Target BP da Beta mixture bimodale (grado 65) → N=32")
+    print("\n Esperimento 7: Target BP da Beta mixture bimodale (grado 65) → N=32")
     f7_orig = 0.5 * stats.beta(15, 52).pdf(x) + 0.5 * stats.beta(52, 15).pdf(x)
     f7 = make_bp_target(65, x, f7_orig)
     r7 = run_experiment(
@@ -919,7 +927,7 @@ if __name__ == '__main__':
     # ------------------------------------------------
     # Esp 8 - Mixture grado 33 -> Approssimante N=16
     # ------------------------------------------------
-    print("\n>>> Esperimento 8: Target BP da Beta mixture bimodale (grado 33) → N=16")
+    print("\n Esperimento 8: Target BP da Beta mixture bimodale (grado 33) → N=16")
     f8_orig = 0.5 * stats.beta(8, 27).pdf(x) + 0.5 * stats.beta(27, 8).pdf(x)
     f8 = make_bp_target(33, x, f8_orig)
     r8 = run_experiment(
@@ -932,7 +940,7 @@ if __name__ == '__main__':
     # -----------------------------------------------
     # Esp 9 - Mixture grado 17 -> Approssimante N=8
     # -----------------------------------------------
-    print("\n>>> Esperimento 9: Target BP da Beta mixture bimodale (grado 17) → N=8")
+    print("\n Esperimento 9: Target BP da Beta mixture bimodale (grado 17) → N=8")
     f9_orig = 0.5 * stats.beta(4, 15).pdf(x) + 0.5 * stats.beta(15, 4).pdf(x)
     f9 = make_bp_target(17, x, f9_orig)
     r9 = run_experiment(
@@ -950,7 +958,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------
     # Esp 10 - Convoluzione grado 65 -> Approssimante N=32
     # -------------------------------------------------------
-    print("\n>>> Esperimento 10: Convoluzione BP (grado 32 + 33 = 65) → N=32")
+    print("\n Esperimento 10: Convoluzione BP (grado 32 + 33 = 65) → N=32")
     f_c10_a = stats.beta(12, 22).pdf(x)
     f_c10_b = stats.beta(22, 13).pdf(x)
     f10_conv, N10_tot = make_bp_convolution_target(32, f_c10_a, 33, f_c10_b, x)
@@ -965,7 +973,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------
     # Esp 11 - Convoluzione grado 33 -> Approssimante N=16
     # -------------------------------------------------------
-    print("\n>>> Esperimento 11: Convoluzione BP (grado 16 + 17 = 33) → N=16")
+    print("\n Esperimento 11: Convoluzione BP (grado 16 + 17 = 33) → N=16")
     f_c11_a = stats.beta(5, 13).pdf(x)
     f_c11_b = stats.beta(13, 6).pdf(x)
     f11_conv, N11_tot = make_bp_convolution_target(16, f_c11_a, 17, f_c11_b, x)
@@ -980,7 +988,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------
     # Esp 12 - Convoluzione grado 17 -> Approssimante N=8
     # -------------------------------------------------------
-    print("\n>>> Esperimento 12: Convoluzione BP (grado 8 + 9 = 17) → N=8")
+    print("\n Esperimento 12: Convoluzione BP (grado 8 + 9 = 17) → N=8")
     f_c12_a = stats.beta(3, 7).pdf(x)
     f_c12_b = stats.beta(7, 4).pdf(x)
     f12_conv, N12_tot = make_bp_convolution_target(8, f_c12_a, 9, f_c12_b, x)
@@ -992,6 +1000,7 @@ if __name__ == '__main__':
     )
     save_all_plots(r12, 'exp12')
 
-    print(f"\n{'='*100}")
-    print(f"  Tutti i 12 esperimenti sono stati completati. Output in: {OUT}/")
-    print(f"{'='*100}")
+    print(f"\n{'='*140}")
+    print(f"  Tutti i 12 esperimenti sono stati completati.")
+    print(f"  Output salvati in: {OUT}/")
+    print(f"{'='*140}")
