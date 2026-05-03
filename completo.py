@@ -50,6 +50,8 @@ plot_so_single(r1, 'bernstein_op_upper', 'upper',
                save_path=f'{OUT}/exp1_bo_so_upper.png')
 plot_so_single(r1, 'bernstein_op_lower', 'lower',
                save_path=f'{OUT}/exp1_bo_so_lower.png')
+plot_so_single(r1, 'pytorch_upper', 'upper',
+                   save_path=f'{OUT}/exp1_pt_so_upper.png')
 plot_so_summary(r1, save_path=f'{OUT}/exp1_so_summary.png')
 print("  → Esperimento 1 completato.")
 
@@ -73,6 +75,8 @@ plot_so_single(r2, 'bernstein_op_upper', 'upper',
                save_path=f'{OUT}/exp2_bo_so_upper.png')
 plot_so_single(r2, 'bernstein_op_lower', 'lower',
                save_path=f'{OUT}/exp2_bo_so_lower.png')
+plot_so_single(r2, 'pytorch_upper', 'upper',
+                   save_path=f'{OUT}/exp2_pt_so_upper.png')
 plot_so_summary(r2, save_path=f'{OUT}/exp2_so_summary.png')
 print("  → Esperimento 2 completato.")
 
@@ -99,7 +103,8 @@ plot_so_single(r3, 'bernstein_op_upper', 'upper',
                save_path=f'{OUT}/exp3_bo_so_upper.png')
 plot_so_single(r3, 'bernstein_op_lower', 'lower',
                save_path=f'{OUT}/exp3_bo_so_lower.png')
-
+plot_so_single(r3, 'pytorch_upper', 'upper',
+                   save_path=f'{OUT}/exp3_pt_so_upper.png')
 plot_so_summary(r3, save_path=f'{OUT}/exp3_so_summary.png')
 
 print("  → Esperimento 3 completato bimodale somma beta.")

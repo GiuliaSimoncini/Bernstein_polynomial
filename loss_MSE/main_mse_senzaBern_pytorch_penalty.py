@@ -652,6 +652,8 @@ def save_all_plots(r: dict, prefix: str):
                    save_path=f'{OUT}/{prefix}_so_upper.png')
     plot_so_single(r, 'scipy_lower', 'lower',
                    save_path=f'{OUT}/{prefix}_so_lower.png')
+    plot_so_single(r, 'pytorch_upper', 'upper',
+                   save_path=f'{OUT}/{prefix}_pt_so_upper.png')
     plot_so_summary(r, save_path=f'{OUT}/{prefix}_so_summary.png')
 
 

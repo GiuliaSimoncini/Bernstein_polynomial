@@ -303,6 +303,88 @@ Dall'esecuzione del codice vengono realizzati numerosi grafici di confronto, tra
 - **Grafico dei pesi W / Delta**: istogrammi che mostrano la distribuzione dei parametri ottimizzati.
 - **Grafico dei Tempi e dell'MSE**: diagramma a barre che illustra l'efficienza algoritmica e l'errore.
 
+## Osservazioni relative ai main delle cartelle loss_MAE, loss_MSE, loss_JSD, loss_Huber
+
+### Scelta della Funzione di Loss (Metrica di Ottimizzazione)
+
+Nel contesto della riduzione del grado dei polinomi di Bernstein (Model Order Reduction), la scelta della metrica per quantificare l'errore tra la funzione target e l'approssimazione gioca un ruolo cruciale sul risultato finale, specialmente quando si utilizzano ottimizzatori come `SLSQP` di SciPy o la discesa del gradiente in PyTorch. 
+
+Nelle numerose versioni del codice, l'obiettivo è minimizzare la discrepanza tra la funzione target $f(x)$ da approssimare e la funzione ricostruita dall'approssimante $\hat{f}(x)$. Definendo $K$ come il numero totale di punti nella griglia spaziale $x_i$, di seguito vengono riportate le espressioni delle loss utilizzate e le relative peculiarità.
+
+#### L1 Loss (Mean Absolute Error - MAE)
+La metrica L1 calcola la media dei valori assoluti degli errori (i residui). Poiché la penalità cresce in modo lineare, questa metrica risulta particolarmente robusta agli *outlier* e non si lascia influenzare eccessivamente da singoli punti con discrepanze elevate, permettendo di preservare fedelmente picchi e discontinuità.
+$$\text{MAE} = \frac{1}{K} \sum_{i=1}^{K} \left| f(x_i) - \hat{f}(x_i) \right|$$
+Tuttavia, la mancanza di derivabilità esatta nello zero può rendere la convergenza dei metodi basati sul gradiente (come quelli usati in SciPy) leggermente più instabile nelle fasi finali dell'ottimizzazione.
+
+#### L2 Loss (Mean Squared Error - MSE)
+La metrica L2 è considerata lo standard per la sua eccellente stabilità numerica. Calcolando la media dei quadrati degli errori, l'ottimizzatore penalizza in modo severo i grandi scostamenti, distribuendo l'errore uniformemente su tutto il dominio e restituendo curve generalmente più smussate.
+$$\text{MSE} = \frac{1}{K} \sum_{i=1}^{K} \left( f(x_i) - \hat{f}(x_i) \right)^2$$
+Il suo vantaggio principale è un gradiente analitico semplice e lineare, che garantisce all'algoritmo `SLSQP` una convergenza rapida e precisa. Di contro, durante una drastica riduzione di grado, la tendenza ad appiattire pesantemente i residui può portare a smussare in modo eccessivo i picchi di distribuzioni complesse, penalizzando ad esempio le funzioni bimodali.
+
+#### Huber Loss
+La Huber Loss offre un'approssimazione liscia che unisce i pregi di L1 e L2: si comporta come l'MSE per gli errori piccoli (garantendo un gradiente differenziabile e una convergenza stabile) e come il MAE per gli errori grandi (evitando che gli outlier dominino l'ottimizzazione). Questo permette di mantenere intatte caratteristiche complesse come la bimodalità senza sacrificare la stabilità numerica.
+Dipende da un parametro di soglia $\delta$ (fissato nel codice a `1e-3`). Definito il residuo $r_i = f(x_i) - \hat{f}(x_i)$, la loss sul singolo punto è:
+$$ 
+L_\delta(r_i) = 
+\begin{cases} 
+\frac{1}{2} r_i^2 & \text{se } |r_i| \le \delta \\ 
+\delta \left( |r_i| - \frac{1}{2} \delta \right) & \text{se } |r_i| > \delta 
+\end{cases} 
+$$
+La Loss totale minimizzata dall'algoritmo è la media di questi valori:
+$$\text{Huber Loss} = \frac{1}{K} \sum_{i=1}^{K} L_\delta(r_i)$$
+
+#### Jensen-Shannon Divergence (JSD)
+A differenza delle distanze spaziali viste sopra, la JSD affronta il problema dalla prospettiva della Teoria dell'Informazione, misurando la similitudine e trattando le curve strettamente come distribuzioni di probabilità. È una versione simmetrica, limitata tra 0 e 1 e liscia della divergenza di Kullback-Leibler ($D_{KL}$).
+Siano $P$ e $Q$ le versioni rigorosamente normalizzate (con somma unitaria) rispettivamente di $f(x)$ e $\hat{f}(x)$. Definita la distribuzione media $M = \frac{1}{2}(P + Q)$, la JSD è:
+$$\text{JSD}(P \parallel Q) = \frac{1}{2} D_{KL}(P \parallel M) + \frac{1}{2} D_{KL}(Q \parallel M)$$
+Dove la divergenza di Kullback-Leibler è calcolata come:
+$$D_{KL}(P \parallel M) = \sum_{i=1}^{K} P_i \log\left( \frac{P_i}{M_i} \right)$$
+*(Nel codice viene esplicitamente aggiunto un parametro numerico microscopico, $\epsilon = 10^{-12}$, per prevenire l'instabilità computazionale del logaritmo di zero).*
+In PyTorch, sfruttando la differenziazione automatica, questa metrica permette di preservare in modo eccellente la forma statistica e le masse di probabilità della funzione target, forzando implicitamente i pesi a generare curve strettamente positive. Risulta tuttavia computazionalmente più delicata rispetto a L1/L2 a causa della gestione dei logaritmi.
+
+---
+
+### Validazione dell'Ordine Stocastico (Stochastic Dominance)
+
+Oltre alla minimizzazione dell'errore, il codice impone e verifica vincoli di ordine stocastico (upper/lower bound) per garantire che la Cumulative Distribution Function (CDF) approssimata rimanga sempre sopra o sotto il target. La metodologia di validazione è stata revisionata per risolvere un limite intrinseco dell'approccio precedente.
+
+#### Perché il vecchio check_order non andava bene
+La funzione originale valutava il rispetto dell'ordine stocastico calcolando la somma cumulativa della differenza dei coefficienti. Questo approccio algebrico richiedeva che i due vettori avessero la stessa dimensione. Nel caso di una riduzione di grado, il vettore di riferimento non era la vera funzione originale ad alto grado, ma solo una sua proiezione (o campionamento) preliminare. Di conseguenza, il vecchio controllo restituiva un falso positivo: certificava matematicamente che l'ordine stocastico era rispettato rispetto all'approssimazione intermedia, ma non garantiva il rispetto del vincolo rispetto alla reale funzione target originale, creando un'incongruenza visibile nei grafici finali.
+
+#### Il nuovo approccio: controllo diretto sulle CDF
+Per risolvere questo problema, il nuovo blocco di codice abbandona lo spazio dei coefficienti e opera direttamente nello spazio delle funzioni valutate. La funzione calcola l'effettiva discrepanza valutando le due curve cumulative su una fitta griglia spaziale, verificando la condizione che la CDF approssimata rispetti la disuguaglianza rispetto alla CDF target. Questo approccio è universalmente valido e indipendente dal grado: permette di confrontare rigorosamente un polinomio ridotto con la curva originale di grado elevato (o persino con funzioni target non polinomiali), allineando perfettamente la metrica di validazione numerica ai risultati tracciati nei grafici.
+
+
+---
+
+
+### Imposizione Rigorosa dell'Ordine Stocastico tramite Funzione di Attivazione in PyTorch
+
+Negli approcci tradizionali basati sulla discesa del gradiente, i vincoli complessi come l'Ordine Stocastico (Stochastic Dominance) vengono solitamente gestiti tramite *soft constraints*, ovvero aggiungendo un termine di penalità quadratica alla funzione di loss per punire le violazioni. Questo approccio, tuttavia, richiede il tuning delicato di iperparametri (il peso della penalità $\lambda$) e non garantisce mai al 100% l'assenza di violazioni. 
+
+Per risolvere definitivamente questo problema, il codice implementa un'innovativa **funzione di attivazione personalizzata** (modulo `_StochasticOrderedModelMSE`). Invece di penalizzare l'ottimizzatore quando sbaglia, questa architettura rende **matematicamente impossibile violare i vincoli**. 
+
+L'algoritmo trasforma un vettore di logit non vincolati ($x \in \mathbb{R}$) in probabilità valide ($p \ge 0$, $\sum p = 1$) sfruttando un processo iterativo ad allocazione residua (simile allo *stick-breaking*):
+1. **Calcolo del Tetto Cumulativo**: a ogni step $h$, l'algoritmo legge il limite massimo di massa cumulabile imposto dal polinomio di riferimento ($W_{ref}$);
+2. **Allocazione Sicura**: sottraendo la massa già distribuita agli step precedenti, calcola lo spazio libero (residuo) e ne assegna una frazione sicura passando i logit $x$ attraverso una funzione **Sigmoide** ($\sigma \in [0,1]$);
+3. **Chiusura a 1:** all'ultimo step, l'intero residuo viene allocato per forzare matematicamente la somma a 1.
+
+**Vantaggi principali**
+- **Garanzia Assoluta**, in quanto i vincoli di upper bound e lower bound sono intrinsecamente garantiti dal *forward pass* della rete. L'ottimizzatore (es. Adam) lavora liberamente in uno spazio non vincolato preoccupandosi esclusivamente di minimizzare l'errore puro (L1, MSE o JSD):
+- **Inizializzazione Intelligente (Warm Start)**, ossia inizializzando i logit a un valore elevato (es. $x = 5.0$, per cui $\sigma(5) \approx 0.993$), la rete alloca da subito la massima massa consentita a ogni step. Questo permette al modello di nascere praticamente identico alla curva di riferimento iniziale ($\Delta \approx 0$), garantendo un punto di partenza stabile e una convergenza estremamente rapida.
+
+---
+
+### Riduzione di Grado: Target Continuo vs. Mappatura su Polinomio di Bernstein
+
+Quando si approssima una funzione complessa di grado elevato (ad esempio una curva target di grado 33) utilizzando un modello di grado inferiore (ad esempio un approssimante di grado 16), si affronta un tipico problema di riduzione della complessità. La differenza fondamentale nell'approccio risiede in come viene fornito il bersaglio all'ottimizzatore.
+
+L'**approccio diretto (ossia senza mappatura di Bernstein)** riguarda lo scenario in cui la funzione loss calcola l'errore confrontando le predizioni del nostro modello di grado 16 direttamente con la curva analitica pura del target (es. la vera PDF continua di una distribuzione Beta). Il vantaggio è che l'ottimizzatore cerca di ricalcare la verità assoluta della formula matematica, catturando l'esatta geometria della funzione originale senza alcun filtro intermedio.
+
+L'**approccio via mappatura (ossia la riduzione interna alla base di Bernstein)**, invece, prevede che il target continuo di grado 33 venga prima proiettato in un Polinomio di Bernstein, trasformandolo in un set discreto di 34 punti di controllo (pesi). Il task diventa quindi una *riduzione di grado omogenea*: cerchiamo i 17 pesi dell'approssimante che riescono a imitare al meglio il comportamento dettato dai 34 pesi del target. Questo approccio è geometricamente elegante e numericamente molto stabile (perché l'ottimizzatore lavora interamente all'interno dello spazio di Bernstein), ma comporta che l'obiettivo da imitare abbia già subito il leggero smoothing (ossia un addolcimento) fisiologico tipico dell'operatore di Bernstein iniziale.
+
+
 ---
 ---
 

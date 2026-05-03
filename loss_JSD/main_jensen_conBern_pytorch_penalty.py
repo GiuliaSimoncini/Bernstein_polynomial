@@ -431,7 +431,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     W_scipy, _ = solve_scipy_jsd(N, x, f, W_init=W_init.copy())
     t_scipy = (time.perf_counter() - t0) * 1e3
     m = _store('scipy', W_scipy, t_scipy)
-    print(f"  Scipy L1             JSD={m:.7f}   t={t_scipy:7.1f} ms")
+    print(f"  Scipy JSD             JSD={m:.7f}   t={t_scipy:7.1f} ms")
 
     # Scipy + SO upper
     t0 = time.perf_counter()
@@ -468,7 +468,7 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
     W_pt = solve_pytorch_jsd(N, x, f, epochs=epochs_pt)
     t_pytorch = (time.perf_counter() - t0) * 1e3
     m = _store('pytorch', W_pt, t_pytorch)
-    print(f"  PyTorch L1           JSD={m:.7f}   t={t_pytorch:7.1f} ms")
+    print(f"  PyTorch JSD           JSD={m:.7f}   t={t_pytorch:7.1f} ms")
 
     # PyTorch + SO upper
     t0 = time.perf_counter()
@@ -507,11 +507,11 @@ STYLE = {
     'bernstein_op_upper': dict(color='#f39c12', ls=':',  lw=1.8, label='BernOp + SO upper'),
     'bernstein_op_lower': dict(color='#1abc9c', ls=':',  lw=1.8, label='BernOp + SO lower'),
     'ing_cane':           dict(color='#e74c3c', ls='-',  lw=1.8, label='Ing-Cane'),
-    'scipy':              dict(color='#27ae60', ls='-',  lw=2.0, label='Scipy L1 SLSQP'),
-    'scipy_upper':        dict(color='#e67e22', ls='-',  lw=1.8, label='Scipy L1 + SO upper'),
-    'scipy_lower':        dict(color='#8e44ad', ls='-',  lw=1.8, label='Scipy L1 + SO lower'),
-    'pytorch':            dict(color='#2980b9', ls='--', lw=1.8, label='PyTorch L1'),
-    'pytorch_upper':      dict(color='#c0392b', ls='--', lw=1.6, label='PyTorch L1 + SO (pen.)'),
+    'scipy':              dict(color='#27ae60', ls='-',  lw=2.0, label='Scipy JSD SLSQP'),
+    'scipy_upper':        dict(color='#e67e22', ls='-',  lw=1.8, label='Scipy JSD + SO upper'),
+    'scipy_lower':        dict(color='#8e44ad', ls='-',  lw=1.8, label='Scipy JSD + SO lower'),
+    'pytorch':            dict(color='#2980b9', ls='--', lw=1.8, label='PyTorch JSD'),
+    'pytorch_upper':      dict(color='#c0392b', ls='--', lw=1.6, label='PyTorch JSD + SO (pen.)'),
 }
 
 
@@ -737,7 +737,7 @@ def plot_so_summary(results: dict, save_path=None):
                             'pytorch', 'pytorch_upper'] if k in results]
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    fig.suptitle(_full_title(results, 'Riepilogo Ordine Stocastico (L1)'),
+    fig.suptitle(_full_title(results, 'Riepilogo Ordine Stocastico (JSD)'),
                  fontsize=11, fontweight='bold')
     ax.plot(x, cdf_t, 'k--', lw=2.5, zorder=6, label='CDF target')
 
@@ -784,6 +784,8 @@ def save_all_plots(r: dict, prefix: str):
                    save_path=f'{OUT}/{prefix}_so_upper.png')
     plot_so_single(r, 'scipy_lower', 'lower',
                    save_path=f'{OUT}/{prefix}_so_lower.png')
+    plot_so_single(r, 'pytorch_upper', 'upper',
+                   save_path=f'{OUT}/{prefix}_pt_so_upper.png')
     plot_so_summary(r, save_path=f'{OUT}/{prefix}_so_summary.png')
 
 
