@@ -1,5 +1,5 @@
 """
-main_huber_senzaBern_pytorch_penalty.py  -  self-contained
+main_huber_senzaBern_pytorch_penalty.py - self-contained
 
 Ottimizzazione con distanza Huber Loss.
 - Target: Funzioni analitiche esatte valutate su x (senza mappare su BP).

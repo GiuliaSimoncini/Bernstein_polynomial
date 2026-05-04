@@ -1,7 +1,7 @@
 """
 main_huber_conBern_pytorch_funzAtt.py - self-contained
 
-Ottimizzazione con distanza Huber.
+Ottimizzazione con distanza Huber (Huber Loss).
 Include l'implementazione dell'attivazione per Ordine Stocastico 
 rigoroso (senza uso di penalità) in PyTorch, basata su allocazione residua.
 

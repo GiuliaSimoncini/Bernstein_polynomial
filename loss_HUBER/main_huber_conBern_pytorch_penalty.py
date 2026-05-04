@@ -1,7 +1,7 @@
 """
 main_huber_conBern_pytorch_penalty.py - self-contained
 
-Ottimizzazione con Huber loss invece di MAE (L1) o MSE (L2).
+Ottimizzazione con Huber Loss invece di MAE (L1) o MSE (L2).
 Include tutte le funzioni da basis.py, stochastic.py, methods.py, plotting.py.
 
 La Huber loss combina il comportamento quadratico (MSE) vicino allo zero
