@@ -368,7 +368,7 @@ Per risolvere definitivamente questo problema, il codice implementa un'innovativ
 L'algoritmo trasforma un vettore di logit non vincolati ($x \in \mathbb{R}$) in probabilità valide ($p \ge 0$, $\sum p = 1$) sfruttando un processo iterativo ad allocazione residua (simile allo *stick-breaking*):
 1. **Calcolo del Tetto Cumulativo**: a ogni step $h$, l'algoritmo legge il limite massimo di massa cumulabile imposto dal polinomio di riferimento ($W_{ref}$);
 2. **Allocazione Sicura**: sottraendo la massa già distribuita agli step precedenti, calcola lo spazio libero (residuo) e ne assegna una frazione sicura passando i logit $x$ attraverso una funzione **Sigmoide** ($\sigma \in [0,1]$);
-3. **Chiusura a 1:** all'ultimo step, l'intero residuo viene allocato per forzare matematicamente la somma a 1.
+3. **Chiusura a 1**: all'ultimo step, l'intero residuo viene allocato per forzare matematicamente la somma a 1.
 
 **Vantaggi principali**
 - **Garanzia Assoluta**, in quanto i vincoli di upper bound e lower bound sono intrinsecamente garantiti dal *forward pass* della rete. L'ottimizzatore (es. Adam) lavora liberamente in uno spazio non vincolato preoccupandosi esclusivamente di minimizzare l'errore puro (L1, MSE o JSD):

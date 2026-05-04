@@ -19,8 +19,8 @@ Logica dei vincoli SO
 
 Il vincolo SO è sempre definito in termini di Delta = W_new - W_ref:
 
-  upper:  cumsum(Delta)[h] <= 0  ∀h=0..N-1   → massa verso destra   → BP >=_st ref
-  lower:  cumsum(Delta)[h] >= 0  ∀h=0..N-1   → massa verso sinistra → BP <=_st ref
+  upper:  cumsum(Delta)[h] <= 0  ∀h=0...N-1   → massa verso destra   → BP >=_st ref
+  lower:  cumsum(Delta)[h] >= 0  ∀h=0...N-1   → massa verso sinistra → BP <=_st ref
 
 Per bernstein_op_{upper,lower}: W_ref = W_bernstein_op  (SO rispetto all'operatore)
 Per scipy_{upper,lower}:        W_ref = W_scipy         (SO rispetto all'ottimo)
