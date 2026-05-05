@@ -569,7 +569,7 @@ def plot_pdf_comparison(results: dict, save_path=None):
     bars = ax_mse.bar(range(len(keys)), mses, color=cols, alpha=0.8)
     ax_mse.set_xticks(range(len(keys)))
     ax_mse.set_xticklabels(lbls, rotation=40, ha='right', fontsize=7)
-    ax_mse.set_ylabel('MSE (L2)'); ax_mse.set_title('Huber loss per metodo')
+    ax_mse.set_ylabel('Huber loss'); ax_mse.set_title('Huber loss per metodo')
     ax_mse.grid(True, axis='y', alpha=0.3)
     for bar, t in zip(bars, times):
         h = bar.get_height()
