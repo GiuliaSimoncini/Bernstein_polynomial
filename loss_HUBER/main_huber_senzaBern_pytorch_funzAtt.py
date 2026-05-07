@@ -437,12 +437,12 @@ def run_experiment(name: str, N: int, x: np.ndarray, f: np.ndarray,
 
     # PyTorch + SO lower (Nuova Attivazione)
     t0 = time.perf_counter()
-    W_pt_up, D_pt_up = solve_pytorch_ordered_huber(N, x, f, W_init.copy(),
+    W_pt_lo, D_pt_lo = solve_pytorch_ordered_huber(N, x, f, W_init.copy(),
                                                  direction='lower', epochs=epochs_pt)
     t = (time.perf_counter() - t0) * 1e3
-    cdf_a = cdf_from_weights(W_pt_up, M, dx)
+    cdf_a = cdf_from_weights(W_pt_lo, M, dx)
     so = check_order(cdf_a, cdf_t, 'lower')
-    m = _store('pytorch_lower', W_pt_up, t, Delta=D_pt_up)
+    m = _store('pytorch_lower', W_pt_lo, t, Delta=D_pt_lo)
     results['pytorch_lower']['so']    = so
     results['pytorch_lower']['W_ref'] = W_init.copy()
     sat = '✓' if so['satisfied'] else '✗'

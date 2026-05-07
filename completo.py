@@ -3,8 +3,9 @@ main.py
 
 Esegue due esperimenti e produce tutti i grafici.
 
-Esperimento 1: Beta(4,10)         - PDF unimodale asimmetrica (moda ~0.27)
-Esperimento 2: x^3 (1-x)^2       - polinomio grado 5, moda in x=0.6
+Esperimento 1: Beta(4,10)                         - PDF unimodale asimmetrica (moda ~0.27)
+Esperimento 2: x^3 (1-x)^2                        - polinomio grado 5, moda in x=0.6
+Esperimento 3: 0.5*Beta(3,10) + 0.5*Beta(10,3)    - PDF bimodale simmetrica
 
 Per ciascun esperimento vengono prodotti:
   expN_pdf.png        : confronto PDF + barplot MSE
